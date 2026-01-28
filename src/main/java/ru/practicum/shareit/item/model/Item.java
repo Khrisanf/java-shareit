@@ -28,6 +28,6 @@ public class Item {
     @Column(name = "category")
     private String category;
 
-    @Column(name = "is_available")
+    @Column(name = "available")
     private Boolean isAvailable;
 }

@@ -7,4 +7,9 @@ import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findByOwnerId(Long ownerId);
+
+    boolean existsByOwnerId(Long ownerId);
+
+    boolean existsByOwnerIdAndName(Long ownerId, String name);
+
 }

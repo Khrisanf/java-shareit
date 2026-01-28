@@ -23,7 +23,7 @@ public class User {
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private Set<Item> items;
 
-    @Column(name = "name_user")
+    @Column(name = "name")
     private String name;
 
     @Column(name = "email", unique = true, nullable = false)
