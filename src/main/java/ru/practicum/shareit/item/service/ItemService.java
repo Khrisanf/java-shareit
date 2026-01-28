@@ -1,12 +1,15 @@
 package ru.practicum.shareit.item.service;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exceptions.ForbiddenException;
+import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-/*TODO: add error-handlers*/
+import java.util.List;
 
 @Service
 public class ItemService {
@@ -20,100 +23,129 @@ public class ItemService {
 
     public Item createItem(Item item, Long ownerId) {
         validateCreateItem(item);
-        if (ownerId == null || ownerId <= 0) {
-            throw new IllegalArgumentException("Owner id cannot be null or zero");
-        }
+        validateUserId(ownerId);
+
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
         item.setId(null);
         item.setOwner(owner);
+
         return itemRepository.save(item);
     }
 
     public Item updateItem(Long ownerId, Long itemId, Item patch) {
-        validateUpdateItem(ownerId, itemId, patch);
+        validateUserId(ownerId);
+        validateItemId(itemId);
+        validatePatch(patch);
 
         Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if(existingItem.getOwner() == null || existingItem.getOwner().getId() == null
-        || !existingItem.getOwner().getId().equals(ownerId)) {
-            throw new IllegalArgumentException("Owner id cannot be null or zero");
+        if (existingItem.getOwner() == null || existingItem.getOwner().getId() == null) {
+            throw new NotFoundException("Item owner not found");
+        }
+        if (!existingItem.getOwner().getId().equals(ownerId)) {
+            throw new ForbiddenException("Only owner can update item");
         }
 
         if (patch.getName() != null) {
             if (patch.getName().isBlank()) {
-                throw new IllegalArgumentException("Name cannot be blank");
+                throw new ValidationException("Item's name cannot be empty");
             }
             existingItem.setName(patch.getName());
         }
 
         if (patch.getDescription() != null) {
             if (patch.getDescription().isBlank()) {
-                throw new IllegalArgumentException("Description cannot be blank");
+                throw new ValidationException("Item's description cannot be empty");
             }
             existingItem.setDescription(patch.getDescription());
         }
+
         if (patch.getIsAvailable() != null) {
             existingItem.setIsAvailable(patch.getIsAvailable());
         }
+
         return itemRepository.save(existingItem);
     }
 
-    public void deleteItem(Long itemId, Long ownerId) {
-        if (ownerId == null || ownerId <= 0) {
-            throw new IllegalArgumentException("Owner id cannot be null or zero");
-        }
-        if (itemId == null || itemId <= 0) {
-            throw new IllegalArgumentException("Id cannot be null or negative!");
-        }
+    public void deleteItem(Long ownerId, Long itemId) {
+        validateUserId(ownerId);
+        validateItemId(itemId);
+
         Item item = itemRepository.findById(itemId)
-                        .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (item.getOwner() == null || item.getOwner().getId() == null) {
+            throw new NotFoundException("Item owner not found");
+        }
         if (!item.getOwner().getId().equals(ownerId)) {
-            throw new IllegalArgumentException("Owner id mismatch");
+            throw new ForbiddenException("Only owner can delete item");
         }
 
         itemRepository.delete(item);
     }
 
     public Item findById(Long ownerId, Long itemId) {
-        if (ownerId == null || ownerId <= 0) {
-            throw new IllegalArgumentException("Owner id cannot be null or zero");
-        }
-        if (itemId == null || itemId <= 0) {
-            throw new IllegalArgumentException("Id cannot be null or negative!");
-        }
+        validateUserId(ownerId);
+        validateItemId(itemId);
+
         if (!userRepository.existsById(ownerId)) {
-            throw new IllegalArgumentException("User not found");
+            throw new NotFoundException("User not found");
         }
+
         return itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item not found!"));
+                .orElseThrow(() -> new NotFoundException("Item not found"));
     }
+
+    public List<Item> getAllByOwner(Long ownerId) {
+        validateUserId(ownerId);
+        if (!userRepository.existsById(ownerId)) {
+            throw new NotFoundException("User not found");
+        }
+        return itemRepository.findAllByOwnerId(ownerId);
+    }
+
+    public List<Item> search(Long userId, String text) {
+        validateUserId(userId);
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+        return itemRepository.searchAvailableByText(text);
+    }
+
 
     private void validateCreateItem(Item item) {
         if (item == null) {
-            throw new IllegalArgumentException("Item cannot be null");
+            throw new ValidationException("Item cannot be null");
         }
         if (item.getName() == null || item.getName().isBlank()) {
-            throw new IllegalArgumentException("Item's name cannot be null or empty");
+            throw new ValidationException("Item's name cannot be null or empty");
         }
         if (item.getDescription() == null || item.getDescription().isBlank()) {
-            throw new IllegalArgumentException("Item's description cannot be null or empty");
+            throw new ValidationException("Item's description cannot be null or empty");
         }
         if (item.getIsAvailable() == null) {
-            throw new IllegalArgumentException("Item's isAvailable cannot be null or empty");
+            throw new ValidationException("Item's isAvailable cannot be null");
         }
     }
 
-    private void validateUpdateItem(Long ownerId, Long itemId, Item patch) {
+    private void validateUserId(Long ownerId) {
         if (ownerId == null || ownerId <= 0) {
-            throw new IllegalArgumentException("Owner id cannot be null or zero");
+            throw new ValidationException("Owner id cannot be null or <= 0");
         }
+    }
+
+    private void validateItemId(Long itemId) {
         if (itemId == null || itemId <= 0) {
-            throw new IllegalArgumentException("Item's id cannot be null or zero");
+            throw new ValidationException("Item id cannot be null or <= 0");
         }
+    }
+
+    private void validatePatch(Item patch) {
         if (patch == null) {
-            throw new IllegalArgumentException("Patch cannot be null");
+            throw new ValidationException("Patch cannot be null");
         }
     }
 }

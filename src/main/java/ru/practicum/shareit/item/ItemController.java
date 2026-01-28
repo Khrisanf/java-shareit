@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/items")
@@ -58,5 +59,29 @@ public class ItemController {
         Item item = itemService.findById(ownerId, itemId);
         return ResponseEntity.ok(itemMapper.toDto(item));
     }
+
+    @GetMapping
+    public ResponseEntity<List<ItemDto>> getAllItemsFromUser(
+            @RequestHeader("X-Sharer-User-Id") Long ownerId
+    ) {
+        List<ItemDto> result = itemService.getAllByOwner(ownerId).stream()
+                .map(itemMapper::toDto)
+                .toList();
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ItemDto>> searchItems(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestParam("text") String text
+    ) {
+        List<ItemDto> result = itemService.search(userId, text).stream()
+                .map(itemMapper::toDto)
+                .toList();
+
+        return ResponseEntity.ok(result);
+    }
+
 }
 

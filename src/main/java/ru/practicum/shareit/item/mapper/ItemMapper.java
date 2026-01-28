@@ -10,8 +10,6 @@ public interface ItemMapper {
 
     ItemDto toDto(Item item);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "owner", ignore = true)
     Item toEntity(ItemDto dto);
 }
 
