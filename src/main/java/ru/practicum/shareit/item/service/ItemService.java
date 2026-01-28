@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
@@ -21,6 +22,7 @@ public class ItemService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public Item createItem(Item item, Long ownerId) {
         validateCreateItem(item);
         validateUserId(ownerId);
@@ -34,24 +36,26 @@ public class ItemService {
         return itemRepository.save(item);
     }
 
+    @Transactional
     public Item updateItem(Long ownerId, Long itemId, Item patch) {
         validateUserId(ownerId);
         validateItemId(itemId);
         validatePatch(patch);
 
         Item existingItem = getItemOrThrow(itemId);
-        assertOwner(existingItem, ownerId, "update");
+        assertOwner(existingItem, ownerId, "updateUser");
 
         applyPatch(existingItem, patch);
         return itemRepository.save(existingItem);
     }
 
+    @Transactional
     public void deleteItem(Long ownerId, Long itemId) {
         validateUserId(ownerId);
         validateItemId(itemId);
 
         Item item = getItemOrThrow(itemId);
-        assertOwner(item, ownerId, "delete");
+        assertOwner(item, ownerId, "deleteUser");
 
         itemRepository.delete(item);
     }

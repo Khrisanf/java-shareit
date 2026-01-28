@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.ConflictException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
@@ -16,7 +17,8 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User create(User user) {
+    @Transactional
+    public User createUser(User user) {
         validateCommonUser(user);
 
         if (userRepository.existsByEmail(user.getEmail())) {
@@ -27,7 +29,8 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User update(Long id, User patch) {
+    @Transactional
+    public User updateUser(Long id, User patch) {
         validateUserId(id);
         validatePatch(patch);
 
@@ -54,7 +57,8 @@ public class UserService {
         return userRepository.save(existing);
     }
 
-    public void delete(Long id) {
+    @Transactional
+    public void deleteUser(Long id) {
         validateUserId(id);
 
         if (!userRepository.existsById(id)) {

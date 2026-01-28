@@ -22,7 +22,7 @@ public class UserController {
     public ResponseEntity<UserDto> createUser(
             @Valid @RequestBody UserDto user
     ) {
-        User createdUser = userService.create(userMapper.toEntity(user));
+        User createdUser = userService.createUser(userMapper.toEntity(user));
         return ResponseEntity.created(URI.create("/users/" + createdUser.getId())).body(userMapper.toDto(createdUser));
     }
 
@@ -31,7 +31,7 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody UserDto user
     ) {
-        User updatedUser = userService.update(id, userMapper.toEntity(user));
+        User updatedUser = userService.updateUser(id, userMapper.toEntity(user));
         return ResponseEntity.ok(userMapper.toDto(updatedUser));
     }
 
@@ -39,7 +39,7 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long id
     ) {
-        userService.delete(id);
+        userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
