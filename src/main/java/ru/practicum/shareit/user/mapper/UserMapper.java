@@ -11,5 +11,4 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     User toEntity(UserDto userDto);
-
 }

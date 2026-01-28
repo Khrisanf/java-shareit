@@ -5,7 +5,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 /*TODO: add error-handler*/
-/*TODO: add email-validator*/
 
 @Service
 public class UserService {
