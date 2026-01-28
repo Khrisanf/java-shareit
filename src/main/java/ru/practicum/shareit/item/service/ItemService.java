@@ -39,16 +39,66 @@ public class ItemService {
         validateItemId(itemId);
         validatePatch(patch);
 
-        Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
+        Item existingItem = getItemOrThrow(itemId);
+        assertOwner(existingItem, ownerId, "update");
 
-        if (existingItem.getOwner() == null || existingItem.getOwner().getId() == null) {
+        applyPatch(existingItem, patch);
+        return itemRepository.save(existingItem);
+    }
+
+    public void deleteItem(Long ownerId, Long itemId) {
+        validateUserId(ownerId);
+        validateItemId(itemId);
+
+        Item item = getItemOrThrow(itemId);
+        assertOwner(item, ownerId, "delete");
+
+        itemRepository.delete(item);
+    }
+
+    public Item findById(Long ownerId, Long itemId) {
+        validateUserId(ownerId);
+        validateItemId(itemId);
+
+        requireUserExists(ownerId);
+        return getItemOrThrow(itemId);
+    }
+
+    public List<Item> getAllByOwner(Long ownerId) {
+        validateUserId(ownerId);
+        requireUserExists(ownerId);
+        return itemRepository.findAllByOwnerId(ownerId);
+    }
+
+    public List<Item> search(Long userId, String text) {
+        validateUserId(userId);
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+        return itemRepository.searchAvailableByText(text);
+    }
+
+    private void requireUserExists(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+    }
+
+    private Item getItemOrThrow(Long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+    }
+
+    private void assertOwner(Item item, Long ownerId, String action) {
+        if (item.getOwner() == null || item.getOwner().getId() == null) {
             throw new NotFoundException("Item owner not found");
         }
-        if (!existingItem.getOwner().getId().equals(ownerId)) {
-            throw new ForbiddenException("Only owner can update item");
+        if (!item.getOwner().getId().equals(ownerId)) {
+            throw new ForbiddenException("Only owner can " + action + " item");
         }
+    }
 
+    private void applyPatch(Item existingItem, Item patch) {
         if (patch.getName() != null) {
             if (patch.getName().isBlank()) {
                 throw new ValidationException("Item's name cannot be empty");
@@ -66,55 +116,7 @@ public class ItemService {
         if (patch.getIsAvailable() != null) {
             existingItem.setIsAvailable(patch.getIsAvailable());
         }
-
-        return itemRepository.save(existingItem);
     }
-
-    public void deleteItem(Long ownerId, Long itemId) {
-        validateUserId(ownerId);
-        validateItemId(itemId);
-
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
-
-        if (item.getOwner() == null || item.getOwner().getId() == null) {
-            throw new NotFoundException("Item owner not found");
-        }
-        if (!item.getOwner().getId().equals(ownerId)) {
-            throw new ForbiddenException("Only owner can delete item");
-        }
-
-        itemRepository.delete(item);
-    }
-
-    public Item findById(Long ownerId, Long itemId) {
-        validateUserId(ownerId);
-        validateItemId(itemId);
-
-        if (!userRepository.existsById(ownerId)) {
-            throw new NotFoundException("User not found");
-        }
-
-        return itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
-    }
-
-    public List<Item> getAllByOwner(Long ownerId) {
-        validateUserId(ownerId);
-        if (!userRepository.existsById(ownerId)) {
-            throw new NotFoundException("User not found");
-        }
-        return itemRepository.findAllByOwnerId(ownerId);
-    }
-
-    public List<Item> search(Long userId, String text) {
-        validateUserId(userId);
-        if (text == null || text.isBlank()) {
-            return List.of();
-        }
-        return itemRepository.searchAvailableByText(text);
-    }
-
 
     private void validateCreateItem(Item item) {
         if (item == null) {

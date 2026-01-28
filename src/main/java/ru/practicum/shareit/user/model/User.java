@@ -7,10 +7,6 @@ import ru.practicum.shareit.item.model.Item;
 
 import java.util.Set;
 
-/**
- * TODO Sprint add-controllers.
- */
-
 @Getter
 @Setter
 @Entity

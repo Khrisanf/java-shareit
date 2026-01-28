@@ -8,21 +8,16 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    List<Item> findByOwnerId(Long ownerId);
-
-    boolean existsByOwnerId(Long ownerId);
-
-    boolean existsByOwnerIdAndName(Long ownerId, String name);
 
     List<Item> findAllByOwnerId(Long ownerId);
 
     @Query("""
-        select i
-        from Item i
-        where i.isAvailable = true
-          and (lower(i.name) like lower(concat('%', :text, '%'))
-               or lower(i.description) like lower(concat('%', :text, '%')))
-    """)
+                select i
+                from Item i
+                where i.isAvailable = true
+                  and (lower(i.name) like lower(concat('%', :text, '%'))
+                       or lower(i.description) like lower(concat('%', :text, '%')))
+            """)
     List<Item> searchAvailableByText(@Param("text") String text);
 
 }
