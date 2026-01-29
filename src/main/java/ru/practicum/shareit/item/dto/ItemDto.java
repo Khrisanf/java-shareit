@@ -1,21 +1,13 @@
 package ru.practicum.shareit.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ItemDto {
-    Long id;
-    private String name;
-    private String description;
-    private long useCount;
+public record ItemDto(
+        Long id,
+        String name,
+        String description,
+        long useCount,
 
-    @JsonProperty("available")
-    private Boolean isAvailable;
-}
+        @JsonProperty("available")
+        Boolean isAvailable
+) {}
