@@ -26,8 +26,7 @@ public class UserService {
     @Transactional
     public User updateUser(Long id, User patch) {
 
-        User existing = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User existing = getUserOrThrow(id);
 
         if (patch.getName() != null) {
             if (patch.getName().isBlank()) {
@@ -51,14 +50,16 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new NotFoundException("User not found");
-        }
+        getUserOrThrow(id);
 
         userRepository.deleteById(id);
     }
 
     public User findById(Long id) {
+        return getUserOrThrow(id);
+    }
+
+    private User getUserOrThrow(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
