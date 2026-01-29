@@ -1,31 +1,26 @@
 package ru.practicum.shareit.item;
 
-import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.validate.OnCreate;
+import ru.practicum.shareit.user.validate.OnUpdate;
 
 import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/items")
+@RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
     private final ItemMapper itemMapper;
 
-    public ItemController(final ItemService itemService, final ItemMapper itemMapper) {
-        this.itemService = itemService;
-        this.itemMapper = itemMapper;
-    }
-
     @PostMapping
     public ResponseEntity<ItemDto> createItem(
             @RequestHeader("X-Sharer-User-Id") Long ownerId,
-            @Valid @RequestBody ItemDto item
+            @Validated(OnCreate.class) @RequestBody ItemDto item
 
     ) {
         Item createdItem = itemService.createItem(itemMapper.toEntity(item), ownerId);
@@ -36,7 +31,7 @@ public class ItemController {
     public ResponseEntity<ItemDto> updateItem(
             @RequestHeader("X-Sharer-User-Id")
             Long ownerId, @PathVariable("id")
-            Long itemId, @Valid @RequestBody ItemDto item
+            Long itemId, @Validated(OnUpdate.class) @RequestBody ItemDto item
     ) {
         Item updatedItem = itemService.updateItem(ownerId, itemId, itemMapper.toEntity(item));
         return ResponseEntity.ok(itemMapper.toDto(updatedItem));
@@ -76,7 +71,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") Long userId,
             @RequestParam("text") String text
     ) {
-        List<ItemDto> result = itemService.search(userId, text).stream()
+        List<ItemDto> result = itemService.search(text).stream()
                 .map(itemMapper::toDto)
                 .toList();
 

@@ -1,9 +1,7 @@
-package ru.practicum.shareit.user.mapper;
+package ru.practicum.shareit.user;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 

@@ -1,13 +1,11 @@
 package ru.practicum.shareit.user;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.validate.OnCreate;
+import ru.practicum.shareit.user.validate.OnUpdate;
 
 import java.net.URI;
 
@@ -20,7 +18,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(
-            @Valid @RequestBody UserDto user
+            @Validated(OnCreate.class) @RequestBody UserDto user
     ) {
         User createdUser = userService.createUser(userMapper.toEntity(user));
         return ResponseEntity.created(URI.create("/users/" + createdUser.getId())).body(userMapper.toDto(createdUser));
@@ -29,7 +27,7 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<UserDto> update(
             @PathVariable Long id,
-            @Valid @RequestBody UserDto user
+            @Validated(OnUpdate.class) @RequestBody UserDto user
     ) {
         User updatedUser = userService.updateUser(id, userMapper.toEntity(user));
         return ResponseEntity.ok(userMapper.toDto(updatedUser));
@@ -48,4 +46,5 @@ public class UserController {
         User user = userService.findById(id);
         return ResponseEntity.ok(userMapper.toDto(user));
     }
+
 }
