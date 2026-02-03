@@ -3,12 +3,19 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentRequestDto;
+import ru.practicum.shareit.item.dto.ItemWithCommentsDto;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.booking.Status;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -16,6 +23,8 @@ import java.util.List;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
+    private final BookingRepository bookingRepository;
 
     @Transactional
     public Item createItem(Item item, Long ownerId) {
@@ -55,6 +64,111 @@ public class ItemService {
         getUserOrThrow(ownerId);
         return itemRepository.findAllByOwnerId(ownerId);
     }
+
+    // НОВОЕ: GET /items/{itemId} с comments
+    @Transactional(readOnly = true)
+    public ItemWithCommentsDto getItemWithComments(Long requesterId, Long itemId) {
+        User requester = getUserOrThrow(requesterId);
+        Item item = getItemOrThrow(itemId);
+
+        List<CommentDto> comments = commentRepository.findAllByItemIdOrderByCreatedDesc(itemId)
+                .stream()
+                .map(this::toCommentDto)
+                .toList();
+
+        ItemWithCommentsDto.BookingShort last = null;
+        ItemWithCommentsDto.BookingShort next = null;
+
+        if (item.getOwner() != null && item.getOwner().getId() != null
+                && item.getOwner().getId().equals(requester.getId())) {
+
+            LocalDateTime now = LocalDateTime.now();
+
+            List<ru.practicum.shareit.booking.Booking> lastList = bookingRepository.findLastApproved(itemId, now);
+            if (!lastList.isEmpty()) {
+                var b = lastList.get(0);
+                last = new ItemWithCommentsDto.BookingShort(b.getBookingId(), b.getBooker().getId());
+            }
+
+            List<ru.practicum.shareit.booking.Booking> nextList = bookingRepository.findNextApproved(itemId, now);
+            if (!nextList.isEmpty()) {
+                var b = nextList.get(0);
+                next = new ItemWithCommentsDto.BookingShort(b.getBookingId(), b.getBooker().getId());
+            }
+        }
+
+        return toItemWithCommentsDto(item, comments, last, next);
+    }
+
+
+    // НОВОЕ: GET /items для владельца с comments (без N+1)
+    @Transactional(readOnly = true)
+    public List<ItemWithCommentsDto> getAllByOwnerWithComments(Long ownerId) {
+        getUserOrThrow(ownerId);
+
+        List<Item> items = itemRepository.findAllByOwnerId(ownerId);
+        if (items.isEmpty()) return List.of();
+
+        List<Long> itemIds = items.stream().map(Item::getId).toList();
+
+        Map<Long, List<CommentDto>> commentsByItemId = commentRepository
+                .findAllByItemIdInOrderByCreatedDesc(itemIds)
+                .stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        c -> c.getItem().getId(),
+                        java.util.stream.Collectors.mapping(this::toCommentDto, java.util.stream.Collectors.toList())
+                ));
+
+        return items.stream()
+                .map(item -> {
+                    List<CommentDto> comments = commentsByItemId.getOrDefault(item.getId(), List.of());
+
+                    LocalDateTime now = LocalDateTime.now();
+
+                    ItemWithCommentsDto.BookingShort last = bookingRepository.findLastApproved(item.getId(), now)
+                            .stream()
+                            .findFirst()
+                            .map(b -> new ItemWithCommentsDto.BookingShort(b.getBookingId(), b.getBooker().getId()))
+                            .orElse(null);
+
+                    ItemWithCommentsDto.BookingShort next = bookingRepository.findNextApproved(item.getId(), now)
+                            .stream()
+                            .findFirst()
+                            .map(b -> new ItemWithCommentsDto.BookingShort(b.getBookingId(), b.getBooker().getId()))
+                            .orElse(null);
+
+                    return toItemWithCommentsDto(item, comments, last, next);
+                })
+                .toList();
+
+    }
+
+    // НОВОЕ: POST /items/{itemId}/comment
+    @Transactional
+    public CommentDto addComment(Long authorId, Long itemId, CommentRequestDto request) {
+        User author = getUserOrThrow(authorId);
+        Item item = getItemOrThrow(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean ok = bookingRepository.hasFinishedBooking(
+                itemId, authorId, Status.APPROVED, now
+        );
+
+        if (!ok) {
+            throw new ValidationException("User has not finished approved booking for this item");
+        }
+
+        Comment saved = commentRepository.save(Comment.builder()
+                .text(request.text())
+                .item(item)
+                .author(author)
+                .created(now)
+                .build());
+
+        return toCommentDto(saved);
+    }
+
 
     public List<Item> search(String text) {
         if (text == null || text.isBlank()) {
@@ -101,5 +215,32 @@ public class ItemService {
         if (patch.getIsAvailable() != null) {
             existingItem.setIsAvailable(patch.getIsAvailable());
         }
+    }
+
+    private CommentDto toCommentDto(Comment c) {
+        return new CommentDto(
+                c.getId(),
+                c.getText(),
+                c.getAuthor().getName(),
+                c.getCreated()
+        );
+    }
+
+    private ItemWithCommentsDto toItemWithCommentsDto(
+            Item item,
+            List<CommentDto> comments,
+            ItemWithCommentsDto.BookingShort last,
+            ItemWithCommentsDto.BookingShort next
+    ) {
+        return new ItemWithCommentsDto(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getUseCount(),
+                item.getIsAvailable(),
+                last,
+                next,
+                comments
+        );
     }
 }

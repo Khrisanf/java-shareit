@@ -1,10 +1,11 @@
 package ru.practicum.shareit.item;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.user.validate.OnCreate;
 import ru.practicum.shareit.user.validate.OnUpdate;
 
@@ -28,6 +29,16 @@ public class ItemController {
         return ResponseEntity.created(URI.create("/items/" + createdItem.getId())).body(itemMapper.toDto(createdItem));
     }
 
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<CommentDto> addComment(@PathVariable Long itemId,
+                                                 @RequestHeader("X-Sharer-User-Id") Long userId,
+                                                 @Valid @RequestBody CommentRequestDto request) {
+        CommentDto created = itemService.addComment(userId, itemId, request);
+        return ResponseEntity
+                .created(URI.create("/items/" + itemId + "/comment/" + created.id()))
+                .body(created);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ItemDto> updateItem(
             @RequestHeader("X-Sharer-User-Id")
@@ -45,15 +56,6 @@ public class ItemController {
     ) {
         itemService.deleteItem(ownerId, itemId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ItemDto> getItems(
-            @RequestHeader("X-Sharer-User-Id")
-            Long ownerId, @PathVariable("id") Long itemId
-    ) {
-        Item item = itemService.findById(ownerId, itemId);
-        return ResponseEntity.ok(itemMapper.toDto(item));
     }
 
     @GetMapping
@@ -79,5 +81,12 @@ public class ItemController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemWithCommentsDto> getItem(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PathVariable("id") Long itemId
+    ) {
+        return ResponseEntity.ok(itemService.getItemWithComments(userId, itemId));
+    }
 }
 
