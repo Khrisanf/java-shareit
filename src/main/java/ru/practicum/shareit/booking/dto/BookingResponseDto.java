@@ -10,7 +10,10 @@ public record BookingResponseDto(
         Booker booker,
         Item item
 ) {
-    public record Booker(Long id) {}
-    public record Item(Long id, String name) {}
+    public record Booker(Long id) {
+    }
+
+    public record Item(Long id, String name) {
+    }
 }
 

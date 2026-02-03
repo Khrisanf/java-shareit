@@ -46,37 +46,37 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                   @Param("now") LocalDateTime now);
 
     @Query("""
-    select (count(b) > 0)
-    from Booking b
-    where b.item.id = :itemId
-      and b.booker.id = :bookerId
-      and b.status = :status
-      and b.endBooking < :now
-""")
+                select (count(b) > 0)
+                from Booking b
+                where b.item.id = :itemId
+                  and b.booker.id = :bookerId
+                  and b.status = :status
+                  and b.endBooking < :now
+            """)
     boolean hasFinishedBooking(@Param("itemId") Long itemId,
                                @Param("bookerId") Long bookerId,
                                @Param("status") Status status,
                                @Param("now") LocalDateTime now);
 
     @Query("""
-    select b
-    from Booking b
-    where b.item.id = :itemId
-      and b.status = 'APPROVED'
-      and b.startBooking <= :now
-    order by b.startBooking desc
-""")
+                select b
+                from Booking b
+                where b.item.id = :itemId
+                  and b.status = 'APPROVED'
+                  and b.startBooking <= :now
+                order by b.startBooking desc
+            """)
     List<Booking> findLastApproved(@Param("itemId") Long itemId,
                                    @Param("now") LocalDateTime now);
 
     @Query("""
-    select b
-    from Booking b
-    where b.item.id = :itemId
-      and b.status = 'APPROVED'
-      and b.startBooking > :now
-    order by b.startBooking asc
-""")
+                select b
+                from Booking b
+                where b.item.id = :itemId
+                  and b.status = 'APPROVED'
+                  and b.startBooking > :now
+                order by b.startBooking asc
+            """)
     List<Booking> findNextApproved(@Param("itemId") Long itemId,
                                    @Param("now") LocalDateTime now);
 }

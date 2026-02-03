@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -27,6 +27,7 @@ public interface BookingMapper {
 
     // Вложенные маппинги (чтобы появились booker{id} и item{id,name})
     BookingResponseDto.Booker toBooker(User user);
+
     BookingResponseDto.Item toItem(Item item);
 }
 

@@ -13,11 +13,9 @@ public record ItemWithCommentsDto(
         @JsonProperty("available")
         Boolean isAvailable,
 
-        BookingShort lastBooking,
-        BookingShort nextBooking,
+        BookingShortDto lastBooking,
+        BookingShortDto nextBooking,
 
-        List<CommentDto> comments
+        List<CommentResponseDto> comments
 ) {
-    public record BookingShort(Long id, Long bookerId) {
-    }
 }

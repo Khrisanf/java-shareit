@@ -7,8 +7,8 @@ import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
-import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -30,17 +30,14 @@ public class BookingService {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        // 1) нельзя бронировать свою вещь
         if (item.getOwner().getId().equals(bookerId)) {
             throw new NotFoundException("Owner cannot book own item");
         }
 
-        // 2) вещь должна быть доступна
-        if (!item.getIsAvailable()) { // или isAvailable(), зависит от твоего Item
+        if (!item.getIsAvailable()) {
             throw new ValidationException("Item is unavailable");
         }
 
-        // 3) даты
         if (booking.getStartBooking() == null || booking.getEndBooking() == null) {
             throw new ValidationException("Start/end must be provided");
         }
