@@ -19,9 +19,9 @@ public class User {
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private Set<Item> items;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false, length = 512)
     private String email;
 }
