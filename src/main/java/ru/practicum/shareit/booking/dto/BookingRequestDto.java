@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 /**
  * TODO Sprint add-bookings.
  */
-public record BookingDto(
+public record BookingRequestDto(
         @NotNull(groups = OnCreate.class)
         Long itemId,
 

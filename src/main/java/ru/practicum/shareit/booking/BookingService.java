@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.Item;
@@ -29,7 +30,24 @@ public class BookingService {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        booking.setBookingId(bookerId);
+        // 1) нельзя бронировать свою вещь
+        if (item.getOwner().getId().equals(bookerId)) {
+            throw new NotFoundException("Owner cannot book own item");
+        }
+
+        // 2) вещь должна быть доступна
+        if (!item.getIsAvailable()) { // или isAvailable(), зависит от твоего Item
+            throw new ValidationException("Item is unavailable");
+        }
+
+        // 3) даты
+        if (booking.getStartBooking() == null || booking.getEndBooking() == null) {
+            throw new ValidationException("Start/end must be provided");
+        }
+        if (!booking.getStartBooking().isBefore(booking.getEndBooking())) {
+            throw new ValidationException("Start must be before end");
+        }
+
         booking.setBooker(booker);
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
@@ -40,32 +58,34 @@ public class BookingService {
     public Booking setApprovedOrRejected(Long bookingId, Long ownerId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
-        Long realOwerId = booking.getItem().getOwner().getId();
-        if (!realOwerId.equals(ownerId)) {
-            throw new NotFoundException("Only item owner can approve/reject this booking");
+
+        Long realOwnerId = booking.getItem().getOwner().getId();
+        if (!realOwnerId.equals(ownerId)) {
+            throw new ForbiddenException("Only item owner can approve/reject this booking");
         }
-        if (booking.getBooker().getId().equals(realOwerId)) {
-            throw new ValidationException("Owner cannot book their own item");
-        }
+
         if (booking.getStatus() != Status.WAITING) {
             throw new ValidationException("Booking is not waiting status");
         }
-        booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
 
+        booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
         return bookingRepository.save(booking);
     }
 
     @Transactional(readOnly = true)
     public Booking getBooking(long bookingId, long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
 
         long bookerId = booking.getBooker().getId();
-
         long ownerId = booking.getItem().getOwner().getId();
 
         if (userId != ownerId && userId != bookerId) {
-            throw new ValidationException("Booking not found");
+            throw new NotFoundException("Booking not found");
         }
 
         return booking;
@@ -73,13 +93,17 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<Booking> getUserBookings(long userId, BookingState state) {
-        LocalDateTime now = LocalDateTime.now();
-        return bookingRepository.findAllForBooker(userId, state.name(), now);
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+        return bookingRepository.findAllForBooker(userId, state.name(), LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
     public List<Booking> getOwnerBookings(long userId, BookingState state) {
-        LocalDateTime now = LocalDateTime.now();
-        return bookingRepository.findAllForOwner(userId, state.name(), now);
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+        return bookingRepository.findAllForOwner(userId, state.name(), LocalDateTime.now());
     }
 }
