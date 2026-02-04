@@ -24,26 +24,10 @@ public class BookingService {
 
     @Transactional
     public Booking createBooking(Booking booking, Long itemId, Long bookerId) {
+        Item item = getItemOrThrow(itemId);
+        User booker = getUserOrThrow(bookerId);
 
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
-        User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        if (item.getOwner().getId().equals(bookerId)) {
-            throw new NotFoundException("Owner cannot book own item");
-        }
-
-        if (!item.getIsAvailable()) {
-            throw new ValidationException("Item is unavailable");
-        }
-
-        if (booking.getStartBooking() == null || booking.getEndBooking() == null) {
-            throw new ValidationException("Start/end must be provided");
-        }
-        if (!booking.getStartBooking().isBefore(booking.getEndBooking())) {
-            throw new ValidationException("Start must be before end");
-        }
+        validateBookingCreation(item, bookerId, booking);
 
         booking.setBooker(booker);
         booking.setItem(item);
@@ -53,17 +37,10 @@ public class BookingService {
 
     @Transactional
     public Booking setApprovedOrRejected(Long bookingId, Long ownerId, boolean approved) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
+        Booking booking = getBookingOrThrow(bookingId);
 
-        Long realOwnerId = booking.getItem().getOwner().getId();
-        if (!realOwnerId.equals(ownerId)) {
-            throw new ForbiddenException("Only item owner can approve/reject this booking");
-        }
-
-        if (booking.getStatus() != Status.WAITING) {
-            throw new ValidationException("Booking is not waiting status");
-        }
+        assertIsOwner(booking, ownerId);
+        validateStatusIsWaiting(booking);
 
         booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
         return bookingRepository.save(booking);
@@ -71,36 +48,81 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public Booking getBooking(long bookingId, long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User not found");
-        }
+        checkUserExists(userId);
+        Booking booking = getBookingOrThrow(bookingId);
 
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
-
-        long bookerId = booking.getBooker().getId();
-        long ownerId = booking.getItem().getOwner().getId();
-
-        if (userId != ownerId && userId != bookerId) {
-            throw new NotFoundException("Booking not found");
-        }
+        assertIsOwnerOrBooker(booking, userId);
 
         return booking;
     }
 
     @Transactional(readOnly = true)
     public List<Booking> getUserBookings(long userId, BookingState state) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User not found");
-        }
+        checkUserExists(userId);
         return bookingRepository.findAllForBooker(userId, state.name(), LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
     public List<Booking> getOwnerBookings(long userId, BookingState state) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User not found");
-        }
+        checkUserExists(userId);
         return bookingRepository.findAllForOwner(userId, state.name(), LocalDateTime.now());
+    }
+
+    // --- Helpers ---
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+    }
+
+    private Item getItemOrThrow(Long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found: " + itemId));
+    }
+
+    private Booking getBookingOrThrow(Long bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
+    }
+
+    private void checkUserExists(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found: " + userId);
+        }
+    }
+
+    private void validateBookingCreation(Item item, Long bookerId, Booking booking) {
+        if (item.getOwner().getId().equals(bookerId)) {
+            throw new NotFoundException("Owner cannot book own item");
+        }
+        if (!item.getIsAvailable()) {
+            throw new ValidationException("Item is unavailable");
+        }
+        if (booking.getStartBooking() == null || booking.getEndBooking() == null) {
+            throw new ValidationException("Start/end must be provided");
+        }
+        if (!booking.getStartBooking().isBefore(booking.getEndBooking())) {
+            throw new ValidationException("Start must be before end");
+        }
+    }
+
+    private void assertIsOwner(Booking booking, Long userId) {
+        if (!booking.getItem().getOwner().getId().equals(userId)) {
+            throw new ForbiddenException("Only item owner can perform this action");
+        }
+    }
+
+    private void assertIsOwnerOrBooker(Booking booking, Long userId) {
+        long bookerId = booking.getBooker().getId();
+        long ownerId = booking.getItem().getOwner().getId();
+        if (userId != ownerId && userId != bookerId) {
+            throw new NotFoundException("Booking not accessable for user: " + userId);
+        }
+    }
+
+    private void validateStatusIsWaiting(Booking booking) {
+        if (booking.getStatus() != Status.WAITING) {
+            throw new ValidationException("Booking status must be WAITING but was: " + booking.getStatus());
+        }
     }
 }

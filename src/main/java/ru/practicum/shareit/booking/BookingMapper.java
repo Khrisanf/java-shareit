@@ -25,7 +25,6 @@ public interface BookingMapper {
     @Mapping(target = "status", expression = "java(booking.getStatus().name())")
     BookingResponseDto toResponseDto(Booking booking);
 
-    // Вложенные маппинги (чтобы появились booker{id} и item{id,name})
     BookingResponseDto.Booker toBooker(User user);
 
     BookingResponseDto.Item toItem(Item item);
