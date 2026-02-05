@@ -3,7 +3,7 @@ package ru.practicum.shareit.user;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.model.Item;
 
 import java.util.Set;
 
@@ -19,9 +19,9 @@ public class User {
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private Set<Item> items;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false, length = 512)
     private String email;
 }
