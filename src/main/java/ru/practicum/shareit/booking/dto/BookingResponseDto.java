@@ -1,5 +1,8 @@
 package ru.practicum.shareit.booking.dto;
 
+import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.user.dto.BookerDto;
+
 import java.time.LocalDateTime;
 
 public record BookingResponseDto(
@@ -7,13 +10,8 @@ public record BookingResponseDto(
         LocalDateTime start,
         LocalDateTime end,
         String status,
-        Booker booker,
-        Item item
+        BookerDto booker,
+        ItemResponseDto item
 ) {
-    public record Booker(Long id) {
-    }
-
-    public record Item(Long id, String name) {
-    }
 }
 

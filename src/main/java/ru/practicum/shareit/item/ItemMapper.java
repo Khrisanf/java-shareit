@@ -1,14 +1,15 @@
-package ru.practicum.shareit.item.mapper;
+package ru.practicum.shareit.item;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.item.dto.BookingShortDto;
+import ru.practicum.shareit.item.comment.CommentMapper;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithCommentsDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDetails;
+import ru.practicum.shareit.item.dto.ItemDetailsDto;
 
 import java.util.List;
 
@@ -27,9 +28,9 @@ public interface ItemMapper {
     @Mapping(target = "lastBooking", source = "details.lastBooking", qualifiedByName = "toBookingShortDto")
     @Mapping(target = "nextBooking", source = "details.nextBooking", qualifiedByName = "toBookingShortDto")
     @Mapping(target = "comments", source = "details.comments")
-    ItemWithCommentsDto toItemWithCommentsDto(ItemDetails details);
+    ItemWithCommentsDto toItemWithCommentsDto(ItemDetailsDto details);
 
-    List<ItemWithCommentsDto> toItemWithCommentsDtoList(List<ItemDetails> details);
+    List<ItemWithCommentsDto> toItemWithCommentsDtoList(List<ItemDetailsDto> details);
 
     @Named("toBookingShortDto")
     default BookingShortDto toBookingShortDto(Booking booking) {

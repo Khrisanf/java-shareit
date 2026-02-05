@@ -59,14 +59,46 @@ public class BookingService {
     @Transactional(readOnly = true)
     public List<Booking> getUserBookings(long userId, BookingState state) {
         checkUserExists(userId);
-        return bookingRepository.findAllForBooker(userId, state.name(), LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+
+        return switch (state) {
+            case ALL -> bookingRepository.findByBookerIdOrderByStartTimeBookingDesc(userId);
+            case CURRENT -> bookingRepository
+                    .findByBookerIdAndStartTimeBookingLessThanEqualAndEndTimeBookingGreaterThanEqualOrderByStartTimeBookingDesc(
+                            userId, now, now);
+            case PAST -> bookingRepository
+                    .findByBookerIdAndEndTimeBookingLessThanOrderByStartTimeBookingDesc(userId, now);
+            case FUTURE -> bookingRepository
+                    .findByBookerIdAndStartTimeBookingGreaterThanOrderByStartTimeBookingDesc(userId, now);
+            case WAITING -> bookingRepository
+                    .findByBookerIdAndStatusOrderByStartTimeBookingDesc(userId, Status.WAITING);
+            case REJECTED -> bookingRepository
+                    .findByBookerIdAndStatusOrderByStartTimeBookingDesc(userId, Status.REJECTED);
+        };
     }
+
 
     @Transactional(readOnly = true)
     public List<Booking> getOwnerBookings(long userId, BookingState state) {
         checkUserExists(userId);
-        return bookingRepository.findAllForOwner(userId, state.name(), LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+
+        return switch (state) {
+            case ALL -> bookingRepository.findByItemOwnerIdOrderByStartTimeBookingDesc(userId);
+            case CURRENT -> bookingRepository
+                    .findByItemOwnerIdAndStartTimeBookingLessThanEqualAndEndTimeBookingGreaterThanEqualOrderByStartTimeBookingDesc(
+                            userId, now, now);
+            case PAST -> bookingRepository
+                    .findByItemOwnerIdAndEndTimeBookingLessThanOrderByStartTimeBookingDesc(userId, now);
+            case FUTURE -> bookingRepository
+                    .findByItemOwnerIdAndStartTimeBookingGreaterThanOrderByStartTimeBookingDesc(userId, now);
+            case WAITING -> bookingRepository
+                    .findByItemOwnerIdAndStatusOrderByStartTimeBookingDesc(userId, Status.WAITING);
+            case REJECTED -> bookingRepository
+                    .findByItemOwnerIdAndStatusOrderByStartTimeBookingDesc(userId, Status.REJECTED);
+        };
     }
+
 
     // --- Helpers ---
 
@@ -77,7 +109,7 @@ public class BookingService {
 
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found: " + itemId));
+                .orElseThrow(() -> new NotFoundException("ItemResponseDto not found: " + itemId));
     }
 
     private Booking getBookingOrThrow(Long bookingId) {
@@ -96,12 +128,12 @@ public class BookingService {
             throw new NotFoundException("Owner cannot book own item");
         }
         if (!item.getIsAvailable()) {
-            throw new ValidationException("Item is unavailable");
+            throw new ValidationException("ItemResponseDto is unavailable");
         }
-        if (booking.getStartBooking() == null || booking.getEndBooking() == null) {
+        if (booking.getStartTimeBooking() == null || booking.getEndTimeBooking() == null) {
             throw new ValidationException("Start/end must be provided");
         }
-        if (!booking.getStartBooking().isBefore(booking.getEndBooking())) {
+        if (!booking.getStartTimeBooking().isBefore(booking.getEndTimeBooking())) {
             throw new ValidationException("Start must be before end");
         }
     }

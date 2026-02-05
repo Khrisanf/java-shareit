@@ -9,14 +9,16 @@ import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
-import ru.practicum.shareit.item.dto.CommentRequestDto;
-import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.comment.CommentRepository;
+import ru.practicum.shareit.item.comment.dto.CommentRequestDto;
+import ru.practicum.shareit.item.comment.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDetails;
+import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,22 +54,10 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Item findById(Long ownerId, Long itemId) {
-        checkUserExists(ownerId);
-        return getItemOrThrow(itemId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Item> getAllByOwner(Long ownerId) {
-        checkUserExists(ownerId);
-        return itemRepository.findAllByOwnerId(ownerId);
-    }
-
-    @Transactional(readOnly = true)
-    public ItemDetails getItemWithComments(Long requesterId, Long itemId) {
+    public ItemDetailsDto getItemWithComments(Long requesterId, Long itemId) {
         checkUserExists(requesterId);
         Item item = getItemOrThrow(itemId);
-        List<Comment> comments = commentRepository.findItemComments(itemId);
+        List<Comment> comments = commentRepository.findByItemIdOrderByCreatedDesc(itemId);
 
         Booking last = null;
         Booking next = null;
@@ -78,27 +68,30 @@ public class ItemService {
             next = findNextBooking(itemId, now);
         }
 
-        return new ItemDetails(item, last, next, comments);
+        return new ItemDetailsDto(item, last, next, comments);
     }
 
     @Transactional(readOnly = true)
-    public List<ItemDetails> getAllByOwnerWithComments(Long ownerId) {
+    public List<ItemDetailsDto> getAllByOwnerWithComments(Long ownerId) {
         checkUserExists(ownerId);
+
         List<Item> items = itemRepository.findAllByOwnerId(ownerId);
         if (items.isEmpty()) return List.of();
 
         List<Long> itemIds = items.stream().map(Item::getId).toList();
-        Map<Long, List<Comment>> commentsByItemId = commentRepository.findCommentsForItems(itemIds)
-                .stream()
-                .collect(Collectors.groupingBy(c -> c.getItem().getId()));
+
+        Map<Long, List<Comment>> commentsByItemId = commentsByItemId(itemIds);
 
         LocalDateTime now = LocalDateTime.now();
 
+        Map<Long, Booking> lastByItemId = lastApprovedByItemId(itemIds, now);
+        Map<Long, Booking> nextByItemId = nextApprovedByItemId(itemIds, now);
+
         return items.stream()
-                .map(item -> new ItemDetails(
+                .map(item -> new ItemDetailsDto(
                         item,
-                        findLastBooking(item.getId(), now),
-                        findNextBooking(item.getId(), now),
+                        lastByItemId.get(item.getId()),
+                        nextByItemId.get(item.getId()),
                         commentsByItemId.getOrDefault(item.getId(), List.of())
                 ))
                 .toList();
@@ -135,7 +128,7 @@ public class ItemService {
 
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
+                .orElseThrow(() -> new NotFoundException("ItemResponseDto not found"));
     }
 
     private void checkUserExists(Long userId) {
@@ -155,17 +148,17 @@ public class ItemService {
     }
 
     private Booking findLastBooking(Long itemId, LocalDateTime now) {
-        return bookingRepository.findLastApproved(itemId, now)
-                .stream().findFirst().orElse(null);
+        return bookingRepository.findFirstByItemIdAndStatusAndStartTimeBookingLessThanEqualOrderByStartTimeBookingDesc(itemId, Status.APPROVED, now)
+                .orElse(null);
     }
 
     private Booking findNextBooking(Long itemId, LocalDateTime now) {
-        return bookingRepository.findNextApproved(itemId, now)
-                .stream().findFirst().orElse(null);
+        return bookingRepository.findFirstByItemIdAndStatusAndStartTimeBookingGreaterThanOrderByStartTimeBookingAsc(itemId, Status.APPROVED, now)
+                .orElse(null);
     }
 
     private void validateCommentAuthor(Long userId, Long itemId, LocalDateTime now) {
-        boolean hasFinishedBooking = bookingRepository.hasFinishedBooking(itemId, userId, Status.APPROVED, now);
+        boolean hasFinishedBooking = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndTimeBookingLessThan(itemId, userId, Status.APPROVED, now);
         if (!hasFinishedBooking) {
             throw new ValidationException("User has not finished approved booking for this item");
         }
@@ -183,5 +176,36 @@ public class ItemService {
         if (patch.getIsAvailable() != null) {
             existingItem.setIsAvailable(patch.getIsAvailable());
         }
+    }
+
+
+    private Map<Long, List<Comment>> commentsByItemId(List<Long> itemIds) {
+        return commentRepository.findByItemIdInOrderByCreatedDesc(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(c -> c.getItem().getId()));
+    }
+
+    private Map<Long, Booking> lastApprovedByItemId(List<Long> itemIds, LocalDateTime now) {
+        List<Booking> candidates =
+                bookingRepository.findByItemIdInAndStatusAndStartTimeBookingLessThanEqualOrderByItemIdAscStartTimeBookingDesc(
+                        itemIds, Status.APPROVED, now
+                );
+        return firstBookingPerItemId(candidates);
+    }
+
+    private Map<Long, Booking> nextApprovedByItemId(List<Long> itemIds, LocalDateTime now) {
+        List<Booking> candidates =
+                bookingRepository.findByItemIdInAndStatusAndStartTimeBookingGreaterThanOrderByItemIdAscStartTimeBookingAsc(
+                        itemIds, Status.APPROVED, now
+                );
+        return firstBookingPerItemId(candidates);
+    }
+
+    private Map<Long, Booking> firstBookingPerItemId(List<Booking> candidates) {
+        Map<Long, Booking> byItemId = new HashMap<>();
+        for (Booking b : candidates) {
+            byItemId.putIfAbsent(b.getItem().getId(), b);
+        }
+        return byItemId;
     }
 }

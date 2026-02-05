@@ -5,15 +5,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CommentRequestDto;
-import ru.practicum.shareit.item.dto.CommentResponseDto;
+import ru.practicum.shareit.item.comment.dto.CommentRequestDto;
+import ru.practicum.shareit.item.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithCommentsDto;
-import ru.practicum.shareit.item.mapper.CommentMapper;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.comment.CommentMapper;
+import ru.practicum.shareit.item.comment.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDetails;
+import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.user.validate.OnCreate;
 import ru.practicum.shareit.user.validate.OnUpdate;
 
@@ -87,7 +86,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") Long userId,
             @PathVariable("id") Long itemId
     ) {
-        ItemDetails details = itemService.getItemWithComments(userId, itemId);
+        ItemDetailsDto details = itemService.getItemWithComments(userId, itemId);
 
         return ResponseEntity.ok(itemMapper.toItemWithCommentsDto(details));
     }
@@ -96,7 +95,7 @@ public class ItemController {
     public ResponseEntity<List<ItemWithCommentsDto>> getAllItemsFromUser(
             @RequestHeader("X-Sharer-User-Id") Long ownerId
     ) {
-        List<ItemDetails> detailsList = itemService.getAllByOwnerWithComments(ownerId);
+        List<ItemDetailsDto> detailsList = itemService.getAllByOwnerWithComments(ownerId);
 
         return ResponseEntity.ok(itemMapper.toItemWithCommentsDtoList(detailsList));
     }

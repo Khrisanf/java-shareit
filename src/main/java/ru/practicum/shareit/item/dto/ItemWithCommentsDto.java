@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.item.comment.dto.CommentResponseDto;
 
 import java.util.List;
 
