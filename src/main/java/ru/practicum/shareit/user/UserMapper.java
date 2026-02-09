@@ -2,6 +2,7 @@ package ru.practicum.shareit.user;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
 
