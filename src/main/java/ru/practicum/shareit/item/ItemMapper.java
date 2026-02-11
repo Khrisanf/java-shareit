@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.dto.ItemWithCommentsDto;
 import ru.practicum.shareit.item.model.Item;
 
@@ -17,6 +18,7 @@ import java.util.List;
 public interface ItemMapper {
 
     @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "itemRequest", ignore = true)
     Item toEntity(ItemDto dto);
 
     ItemDto toDto(Item item);
@@ -39,4 +41,7 @@ public interface ItemMapper {
         }
         return new BookingShortDto(booking.getBookingId(), booking.getBooker().getId());
     }
+
+    @Mapping(target = "ownerId", source = "owner.id")
+    ItemShortDto toItemShortDto(Item item);
 }

@@ -33,7 +33,7 @@ public class ItemController {
             @Validated(OnCreate.class) @RequestBody ItemDto item
 
     ) {
-        Item createdItem = itemService.createItem(itemMapper.toEntity(item), ownerId);
+        Item createdItem = itemService.createItem(itemMapper.toEntity(item), ownerId, item.requestId());
         return ResponseEntity.created(URI.create("/items/" + createdItem.getId())).body(itemMapper.toDto(createdItem));
     }
 

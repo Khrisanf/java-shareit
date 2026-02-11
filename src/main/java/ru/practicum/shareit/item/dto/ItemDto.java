@@ -1,10 +1,7 @@
 package ru.practicum.shareit.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import ru.practicum.shareit.user.validate.OnCreate;
 import ru.practicum.shareit.user.validate.OnUpdate;
 
@@ -24,6 +21,9 @@ public record ItemDto(
 
         @JsonProperty("available")
         @NotNull(groups = OnCreate.class)
-        Boolean isAvailable
+        Boolean isAvailable,
+
+        @Positive(groups = {OnCreate.class, OnUpdate.class})
+        Long requestId
 ) {
 }

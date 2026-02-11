@@ -3,7 +3,10 @@ package ru.practicum.shareit.item.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
+
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -30,4 +33,8 @@ public class Item {
 
     @Column(name = "available")
     private Boolean isAvailable;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
+    private ItemRequest itemRequest;
 }

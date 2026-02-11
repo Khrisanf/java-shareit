@@ -14,6 +14,8 @@ import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.comment.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -30,11 +32,17 @@ public class ItemService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Transactional
-    public Item createItem(Item item, Long ownerId) {
+    public Item createItem(Item item, Long ownerId, Long requestId) {
         item.setId(null);
         item.setOwner(getUserOrThrow(ownerId));
+        if (requestId != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(requestId)
+                            .orElseThrow(() -> new NotFoundException("Request not found: " + requestId));
+            item.setItemRequest(itemRequest);
+        }
         return itemRepository.save(item);
     }
 
