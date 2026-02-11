@@ -6,8 +6,6 @@ import lombok.Setter;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
-import java.util.Optional;
-
 @Getter
 @Setter
 @Entity

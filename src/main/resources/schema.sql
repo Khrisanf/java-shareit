@@ -7,10 +7,26 @@ create table if not exists users
 
 create index if not exists idx_users_email on users (email);
 
+-- ======================================================================
+-- ItemRequest -> requests
+-- ======================================================================
+create table if not exists requests
+(
+    id           bigserial primary key,
+    description  text                        not null,
+    requestor_id bigint                      not null references users (id),
+    created      timestamp without time zone not null
+);
+
+create index if not exists idx_requests_requestor_id on requests (requestor_id);
+create index if not exists idx_requests_created on requests (created desc);
+create index if not exists idx_requests_requestor_created on requests (requestor_id, created desc);
+
 create table if not exists items
 (
     id          bigserial primary key,
     owner_id    bigint not null references users (id),
+    request_id  bigint references requests (id),
     name        varchar(255),
     description text,
     use_count   bigint not null default 0,
@@ -19,6 +35,7 @@ create table if not exists items
 );
 
 create index if not exists idx_items_owner_id on items (owner_id);
+create index if not exists idx_items_request_id on items (request_id);
 create index if not exists idx_items_available on items (available);
 create index if not exists idx_items_category on items (category);
 

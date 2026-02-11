@@ -40,7 +40,7 @@ public class ItemService {
         item.setOwner(getUserOrThrow(ownerId));
         if (requestId != null) {
             ItemRequest itemRequest = itemRequestRepository.findById(requestId)
-                            .orElseThrow(() -> new NotFoundException("Request not found: " + requestId));
+                    .orElseThrow(() -> new NotFoundException("Request not found: " + requestId));
             item.setItemRequest(itemRequest);
         }
         return itemRepository.save(item);
