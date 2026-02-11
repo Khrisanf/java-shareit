@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @RestController
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
@@ -56,6 +53,26 @@ public class ItemRequestController {
         List<Long> requestIds = requests.stream()
                 .map(ItemRequest::getId)
                 .toList();
+        List<Item> items = itemRequestService.findAllItemsByRequestsIds(requestIds);
+        Map<Long, List<ItemShortDto>> itemsByRequestId = items.stream()
+                .collect(Collectors.groupingBy(
+                        item -> item.getItemRequest().getId(),
+                        Collectors.mapping(itemMapper::toItemShortDto, Collectors.toList())
+                ));
+        return ResponseEntity.ok(requests.stream()
+                .map(r -> itemRequestMapper.toDto(r, itemsByRequestId.getOrDefault(r.getId(), List.of())))
+                .toList());
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<ItemRequestDto>> getAllOther(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestParam(defaultValue = "0") int from,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<ItemRequest> requests = itemRequestService.findAllOtherRequests(userId, from, size);
+        List<Long> requestIds = requests.stream()
+                .map(ItemRequest::getId).toList();
         List<Item> items = itemRequestService.findAllItemsByRequestsIds(requestIds);
         Map<Long, List<ItemShortDto>> itemsByRequestId = items.stream()
                 .collect(Collectors.groupingBy(
