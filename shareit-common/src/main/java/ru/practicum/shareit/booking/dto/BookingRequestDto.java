@@ -7,9 +7,6 @@ import ru.practicum.shareit.validate.OnCreate;
 
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 public record BookingRequestDto(
         @NotNull(groups = OnCreate.class)
         Long itemId,

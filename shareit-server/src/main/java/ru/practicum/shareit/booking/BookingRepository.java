@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import ru.practicum.shareit.booking.dto.Status;
 
 import java.time.LocalDateTime;
 import java.util.List;
