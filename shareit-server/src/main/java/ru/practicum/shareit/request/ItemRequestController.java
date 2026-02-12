@@ -5,14 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemShortDto;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /*TODO: ПРОВЕСТИ РЕФАКТОРИНГ КОДА*/
 
@@ -23,6 +20,8 @@ public class ItemRequestController implements ItemRequestApi {
     private final ItemRequestService itemRequestService;
     private final ItemRequestMapper itemRequestMapper;
     private final ItemMapper itemMapper;
+    private final ItemRequestDtoAssembler itemRequestDtoAssembler;
+
 
     @Override
     public ResponseEntity<ItemRequestDto> create(Long userId, ItemRequestCreateDto itemRequestCreateDto) {
@@ -48,46 +47,12 @@ public class ItemRequestController implements ItemRequestApi {
     @Override
     public ResponseEntity<List<ItemRequestDto>> getAll(Long userId) {
         List<ItemRequest> requests = itemRequestService.findAllByRequestor(userId);
-
-        List<Long> requestIds = requests.stream()
-                .map(ItemRequest::getId)
-                .toList();
-
-        List<Item> items = itemRequestService.findAllItemsByRequestsIds(requestIds);
-
-        Map<Long, List<ItemShortDto>> itemsByRequestId = items.stream()
-                .collect(Collectors.groupingBy(
-                        item -> item.getItemRequest().getId(),
-                        Collectors.mapping(itemMapper::toItemShortDto, Collectors.toList())
-                ));
-
-        List<ItemRequestDto> result = requests.stream()
-                .map(r -> itemRequestMapper.toDto(r, itemsByRequestId.getOrDefault(r.getId(), List.of())))
-                .toList();
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(itemRequestDtoAssembler.mapRequestsToDtos(requests));
     }
 
     @Override
     public ResponseEntity<List<ItemRequestDto>> getAllOther(Long userId, int from, int size) {
         List<ItemRequest> requests = itemRequestService.findAllOtherRequests(userId, from, size);
-
-        List<Long> requestIds = requests.stream()
-                .map(ItemRequest::getId)
-                .toList();
-
-        List<Item> items = itemRequestService.findAllItemsByRequestsIds(requestIds);
-
-        Map<Long, List<ItemShortDto>> itemsByRequestId = items.stream()
-                .collect(Collectors.groupingBy(
-                        item -> item.getItemRequest().getId(),
-                        Collectors.mapping(itemMapper::toItemShortDto, Collectors.toList())
-                ));
-
-        List<ItemRequestDto> result = requests.stream()
-                .map(r -> itemRequestMapper.toDto(r, itemsByRequestId.getOrDefault(r.getId(), List.of())))
-                .toList();
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(itemRequestDtoAssembler.mapRequestsToDtos(requests));
     }
 }

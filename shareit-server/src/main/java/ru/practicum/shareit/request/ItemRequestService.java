@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
@@ -24,17 +25,13 @@ public class ItemRequestService {
     @Transactional
     public ItemRequest create(ItemRequest request, Long userId) {
         request.setId(null);
-        request.setRequestor(userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found: " + userId)));
+        request.setRequestor(getUserOrThrow(userId));
         request.setCreated(LocalDateTime.now());
         return itemRequestRepository.save(request);
     }
 
     public ItemRequest findById(Long userId, Long requestId) {
-        boolean isExisting = userRepository.existsById(userId);
-        if (!isExisting) {
-            throw new NotFoundException("User not found: " + userId);
-        }
+        assertUserExists(userId);
         return itemRequestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Request not found: " + requestId));
     }
@@ -44,9 +41,7 @@ public class ItemRequestService {
     }
 
     public List<ItemRequest> findAllByRequestor(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User not found: " + userId);
-        }
+        assertUserExists(userId);
         return itemRequestRepository.findAllByRequestor_IdOrderByCreatedDesc(userId);
     }
 
@@ -56,13 +51,34 @@ public class ItemRequestService {
 
     @Transactional(readOnly = true)
     public List<ItemRequest> findAllOtherRequests(Long userId, int from, int size) {
+        assertUserExists(userId);
+        Pageable pageable = toPageable(from, size);
+        return itemRequestRepository
+                .findAllByRequestor_IdNotOrderByCreatedDesc(userId, pageable)
+                .getContent();
+    }
+
+    // ===== Helpers =====
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+    }
+
+    private void assertUserExists(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found: " + userId);
         }
-        int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
-        return itemRequestRepository.findAllByRequestor_IdNotOrderByCreatedDesc(userId, pageable)
-                .getContent();
+    }
 
+    private Pageable toPageable(int from, int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("size must be > 0");
+        }
+        if (from < 0) {
+            throw new IllegalArgumentException("from must be >= 0");
+        }
+        int page = from / size;
+        return PageRequest.of(page, size);
     }
 }
