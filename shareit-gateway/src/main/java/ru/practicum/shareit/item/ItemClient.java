@@ -7,5 +7,6 @@ import org.springframework.cloud.openfeign.FeignClient;
         url = "${shareit-server.url}",
         contextId = "itemClient"
 )
-public interface ItemClient extends ItemApi {}
+public interface ItemClient extends ItemApi {
+}
 
