@@ -14,12 +14,17 @@ import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.handler.ErrorHandler;
 import ru.practicum.shareit.item.ItemController;
+import ru.practicum.shareit.item.dto.ItemDetailsDto;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithCommentsDto;
 import ru.practicum.shareit.item.ItemMapper;
-import ru.practicum.shareit.item.ItemService;
-import ru.practicum.shareit.item.comment.Comment;
-import ru.practicum.shareit.item.comment.CommentMapper;
-import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.ItemService;
+
+import ru.practicum.shareit.item.dto.CommentRequestDto;
+import ru.practicum.shareit.item.dto.CommentResponseDto;
+import ru.practicum.shareit.item.comment.CommentMapper;
+import ru.practicum.shareit.item.comment.Comment;
 
 import java.util.List;
 
@@ -39,17 +44,12 @@ class ItemControllerTest {
 
     private static final String USER_HEADER = "X-Sharer-User-Id";
 
-    @Autowired
-    MockMvc mockMvc;
-    @Autowired
-    ObjectMapper objectMapper;
+    @Autowired MockMvc mockMvc;
+    @Autowired ObjectMapper objectMapper;
 
-    @MockBean
-    ItemService itemService;
-    @MockBean
-    ItemMapper itemMapper;
-    @MockBean
-    CommentMapper commentMapper;
+    @MockBean ItemService itemService;
+    @MockBean ItemMapper itemMapper;
+    @MockBean CommentMapper commentMapper;
 
     @Test
     @DisplayName("POST /items -> 201, Location, body")
@@ -168,10 +168,8 @@ class ItemControllerTest {
     void searchItems_ok() throws Exception {
         long userId = 99L;
 
-        Item i1 = new Item();
-        i1.setId(1L);
-        Item i2 = new Item();
-        i2.setId(2L);
+        Item i1 = new Item(); i1.setId(1L);
+        Item i2 = new Item(); i2.setId(2L);
 
         ItemDto d1 = new ItemDto(1L, "A", "DA", 0L, true, null);
         ItemDto d2 = new ItemDto(2L, "B", "DB", 0L, true, null);

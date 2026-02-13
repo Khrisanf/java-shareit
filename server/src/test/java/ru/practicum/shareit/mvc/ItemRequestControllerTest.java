@@ -10,26 +10,24 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.ShareItServerApp;
-import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.handler.ErrorHandler;
 import ru.practicum.shareit.item.ItemMapper;
-import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.*;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.exceptions.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = ItemRequestController.class)
@@ -39,19 +37,13 @@ class ItemRequestControllerTest {
 
     private static final String USER_HEADER = "X-Sharer-User-Id";
 
-    @Autowired
-    MockMvc mockMvc;
-    @Autowired
-    ObjectMapper objectMapper;
+    @Autowired MockMvc mockMvc;
+    @Autowired ObjectMapper objectMapper;
 
-    @MockBean
-    ItemRequestService itemRequestService;
-    @MockBean
-    ItemRequestMapper itemRequestMapper;
-    @MockBean
-    ItemMapper itemMapper;
-    @MockBean
-    ItemRequestDtoAssembler itemRequestDtoAssembler;
+    @MockBean ItemRequestService itemRequestService;
+    @MockBean ItemRequestMapper itemRequestMapper;
+    @MockBean ItemMapper itemMapper;
+    @MockBean ItemRequestDtoAssembler itemRequestDtoAssembler;
 
     @Test
     @DisplayName("POST /requests -> 201 + Location + body")
@@ -134,10 +126,8 @@ class ItemRequestControllerTest {
     void getAll_ok() throws Exception {
         long userId = 10L;
 
-        ItemRequest r1 = new ItemRequest();
-        r1.setId(1L);
-        ItemRequest r2 = new ItemRequest();
-        r2.setId(2L);
+        ItemRequest r1 = new ItemRequest(); r1.setId(1L);
+        ItemRequest r2 = new ItemRequest(); r2.setId(2L);
 
         ItemRequestDto d1 = new ItemRequestDto(1L, "A", null, List.of());
         ItemRequestDto d2 = new ItemRequestDto(2L, "B", null, List.of());
@@ -162,8 +152,7 @@ class ItemRequestControllerTest {
     void getAllOther_ok() throws Exception {
         long userId = 10L;
 
-        ItemRequest r1 = new ItemRequest();
-        r1.setId(100L);
+        ItemRequest r1 = new ItemRequest(); r1.setId(100L);
         ItemRequestDto d1 = new ItemRequestDto(100L, "X", null, List.of());
 
         when(itemRequestService.findAllOtherRequests(userId, 0, 10)).thenReturn(List.of(r1));

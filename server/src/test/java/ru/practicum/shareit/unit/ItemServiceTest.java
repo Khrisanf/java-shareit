@@ -2,50 +2,44 @@ package ru.practicum.shareit.unit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.Status;
-import ru.practicum.shareit.exceptions.ForbiddenException;
-import ru.practicum.shareit.exceptions.NotFoundException;
-import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.comment.Comment;
-import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
+import ru.practicum.shareit.exceptions.ForbiddenException;
+import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
-import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
+
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.item.comment.CommentRepository;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.UserRepository;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceTest {
 
     @Mock
     ItemRepository itemRepository;
-    @Mock
-    UserRepository userRepository;
-    @Mock
-    CommentRepository commentRepository;
-    @Mock
-    BookingRepository bookingRepository;
-    @Mock
-    ItemRequestRepository itemRequestRepository;
+    @Mock UserRepository userRepository;
+    @Mock CommentRepository commentRepository;
+    @Mock BookingRepository bookingRepository;
+    @Mock ItemRequestRepository itemRequestRepository;
 
     @InjectMocks
     ItemService itemService;

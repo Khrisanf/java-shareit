@@ -2,41 +2,35 @@ package ru.practicum.shareit.unit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import ru.practicum.shareit.exceptions.NotFoundException;
-import ru.practicum.shareit.item.ItemRepository;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.ItemRequest;
-import ru.practicum.shareit.request.ItemRequestRepository;
-import ru.practicum.shareit.request.ItemRequestService;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserRepository;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
+import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.ItemRequestService;
+import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.User;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceTest {
 
     @Mock
     ItemRequestRepository itemRequestRepository;
-    @Mock
-    UserRepository userRepository;
-    @Mock
-    ItemRepository itemRepository;
+    @Mock UserRepository userRepository;
+    @Mock ItemRepository itemRepository;
 
     @InjectMocks
     ItemRequestService itemRequestService;
