@@ -11,8 +11,6 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import java.net.URI;
 import java.util.List;
 
-/*TODO: ПРОВЕСТИ РЕФАКТОРИНГ КОДА*/
-
 @RestController
 @RequiredArgsConstructor
 public class ItemRequestController implements ItemRequestApi {
