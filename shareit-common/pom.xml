@@ -43,14 +43,11 @@
             <artifactId>jackson-annotations</artifactId>
         </dependency>
 
-        <!-- NEW: поддержка Java Time (LocalDateTime и т.п.) -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
-        <!-- NEW: @JsonTest и тестовая инфраструктура Spring Boot -->
-        <!-- Оставляем TestNG, поэтому исключаем JUnit Jupiter/Vintage -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -67,12 +64,22 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- existing -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>7.12.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
         </dependency>
     </dependencies>
 
