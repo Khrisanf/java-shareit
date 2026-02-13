@@ -23,10 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = TestBootConfig.class)
 class ItemRequestDtoTest {
 
+    private static Validator validator;
     @Autowired
     private JacksonTester<ItemRequestDto> itemRequestJson;
-
-    private static Validator validator;
 
     @BeforeAll
     static void initValidator() {

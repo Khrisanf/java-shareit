@@ -20,14 +20,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = TestBootConfig.class)
 class ItemDtoJsonTest {
 
-    @Autowired private JacksonTester<ItemDto> itemJson;
-    @Autowired private JacksonTester<CommentResponseDto> commentResponseJson;
-
-    @Autowired private JacksonTester<CommentRequestDto> commentRequestJson;
-    @Autowired private JacksonTester<ItemResponseDto> itemResponseJson;
-    @Autowired private JacksonTester<ItemWithCommentsDto> itemWithCommentsJson;
-
     private static Validator validator;
+    @Autowired
+    private JacksonTester<ItemDto> itemJson;
+    @Autowired
+    private JacksonTester<CommentResponseDto> commentResponseJson;
+    @Autowired
+    private JacksonTester<CommentRequestDto> commentRequestJson;
+    @Autowired
+    private JacksonTester<ItemResponseDto> itemResponseJson;
+    @Autowired
+    private JacksonTester<ItemWithCommentsDto> itemWithCommentsJson;
 
     @BeforeAll
     static void initValidator() {

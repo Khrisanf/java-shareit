@@ -20,9 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = TestBootConfig.class)
 class BookingDtoTest {
 
-    @Autowired ObjectMapper objectMapper;
-
     private static Validator validator;
+    @Autowired
+    ObjectMapper objectMapper;
 
     @BeforeAll
     static void initValidator() {
@@ -75,6 +75,35 @@ class BookingDtoTest {
     }
 
     // ---------------- Validation (OnCreate) ----------------
+
+    @Test
+    void bookingState_shouldHaveExpectedConstants() {
+        assertThat(BookingState.values())
+                .containsExactly(
+                        BookingState.ALL,
+                        BookingState.CURRENT,
+                        BookingState.PAST,
+                        BookingState.FUTURE,
+                        BookingState.WAITING,
+                        BookingState.REJECTED
+                );
+
+        for (var v : BookingState.values()) {
+            assertThat(BookingState.valueOf(v.name())).isSameAs(v);
+        }
+    }
+
+    // ---------------- Enums ----------------
+
+    @Test
+    void status_shouldHaveExpectedConstants() {
+        assertThat(Status.values())
+                .containsExactly(Status.WAITING, Status.APPROVED, Status.REJECTED);
+
+        for (var v : Status.values()) {
+            assertThat(Status.valueOf(v.name())).isSameAs(v);
+        }
+    }
 
     @Nested
     class BookingRequestDtoValidation {
@@ -132,35 +161,6 @@ class BookingDtoTest {
             var violations = validator.validate(dto, OnCreate.class);
 
             assertThat(violations).isEmpty();
-        }
-    }
-
-    // ---------------- Enums ----------------
-
-    @Test
-    void bookingState_shouldHaveExpectedConstants() {
-        assertThat(BookingState.values())
-                .containsExactly(
-                        BookingState.ALL,
-                        BookingState.CURRENT,
-                        BookingState.PAST,
-                        BookingState.FUTURE,
-                        BookingState.WAITING,
-                        BookingState.REJECTED
-                );
-
-        for (var v : BookingState.values()) {
-            assertThat(BookingState.valueOf(v.name())).isSameAs(v);
-        }
-    }
-
-    @Test
-    void status_shouldHaveExpectedConstants() {
-        assertThat(Status.values())
-                .containsExactly(Status.WAITING, Status.APPROVED, Status.REJECTED);
-
-        for (var v : Status.values()) {
-            assertThat(Status.valueOf(v.name())).isSameAs(v);
         }
     }
 }
