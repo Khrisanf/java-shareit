@@ -65,9 +65,7 @@ class UserControllerTest {
 
     @Test
     void createUser_invalid_shouldReturn400_andNotCallClient() throws Exception {
-        String badJson = """
-                { "email": "ann@mail.ru" }
-                """;
+        String badJson = "{ \"email\": \"ann@mail.ru\" }";
 
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -102,9 +100,7 @@ class UserControllerTest {
     void update_invalid_shouldReturn400_andNotCallClient() throws Exception {
         long id = 10L;
 
-        String badJson = """
-                { "name": "   " }
-                """;
+        String badJson = "{ \"name\": \"   \" }";
 
         mvc.perform(patch("/users/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
