@@ -465,4 +465,46 @@ class ItemServiceTest {
         verify(itemRepository).searchAvailableByText("drill");
         verifyNoMoreInteractions(itemRepository);
     }
+
+    @Test
+    void updateItem_whenPatchNameValid_shouldApplyAndSave() {
+        long ownerId = 1L;
+        long itemId = 10L;
+
+        Item existing = item(itemId, ownerId);
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existing));
+        when(itemRepository.save(any(Item.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Item patch = new Item();
+        patch.setName("NewName");
+
+        Item updated = itemService.updateItem(ownerId, itemId, patch);
+
+        assertThat(updated.getName()).isEqualTo("NewName");
+
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository).save(any(Item.class));
+        verifyNoMoreInteractions(itemRepository, userRepository, itemRequestRepository, commentRepository, bookingRepository);
+    }
+
+    @Test
+    void updateItem_whenPatchDescriptionBlank_shouldThrowValidation() {
+        long ownerId = 1L;
+        long itemId = 10L;
+
+        Item existing = item(itemId, ownerId);
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existing));
+
+        Item patch = new Item();
+        patch.setDescription("   ");
+
+        assertThatThrownBy(() -> itemService.updateItem(ownerId, itemId, patch))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Description cannot be empty");
+
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository, never()).save(any());
+        verifyNoMoreInteractions(itemRepository, userRepository, itemRequestRepository, commentRepository, bookingRepository);
+    }
+
 }
