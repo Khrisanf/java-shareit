@@ -507,4 +507,32 @@ class ItemServiceTest {
         verifyNoMoreInteractions(itemRepository, userRepository, itemRequestRepository, commentRepository, bookingRepository);
     }
 
+    @Test
+    void getItemWithComments_whenUserNotExists_shouldThrowNotFound() {
+        long requesterId = 1L;
+        long itemId = 10L;
+
+        when(userRepository.existsById(requesterId)).thenReturn(false);
+
+        assertThatThrownBy(() -> itemService.getItemWithComments(requesterId, itemId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("User not found");
+
+        verify(userRepository).existsById(requesterId);
+        verifyNoInteractions(itemRepository, commentRepository, bookingRepository, itemRequestRepository);
+    }
+
+    @Test
+    void getAllByOwnerWithComments_whenUserNotExists_shouldThrowNotFound() {
+        long ownerId = 1L;
+
+        when(userRepository.existsById(ownerId)).thenReturn(false);
+
+        assertThatThrownBy(() -> itemService.getAllByOwnerWithComments(ownerId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("User not found");
+
+        verify(userRepository).existsById(ownerId);
+        verifyNoInteractions(itemRepository, commentRepository, bookingRepository, itemRequestRepository);
+    }
 }

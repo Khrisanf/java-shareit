@@ -402,4 +402,102 @@ class BookingServiceTest {
 
         verify(bookingRepository).findByItemOwnerIdAndStatusOrderByStartTimeBookingDesc(2L, Status.REJECTED);
     }
+
+    @Test
+    void getUserBookings_statePast_shouldCallFindPastWithNow() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndEndTimeBookingLessThanOrderByStartTimeBookingDesc(
+                eq(1L), any(LocalDateTime.class)
+        )).thenReturn(List.of());
+
+        bookingService.getUserBookings(1L, BookingState.PAST);
+
+        verify(bookingRepository)
+                .findByBookerIdAndEndTimeBookingLessThanOrderByStartTimeBookingDesc(
+                        eq(1L), any(LocalDateTime.class)
+                );
+    }
+
+    @Test
+    void getUserBookings_stateFuture_shouldCallFindFutureWithNow() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStartTimeBookingGreaterThanOrderByStartTimeBookingDesc(
+                eq(1L), any(LocalDateTime.class)
+        )).thenReturn(List.of());
+
+        bookingService.getUserBookings(1L, BookingState.FUTURE);
+
+        verify(bookingRepository)
+                .findByBookerIdAndStartTimeBookingGreaterThanOrderByStartTimeBookingDesc(
+                        eq(1L), any(LocalDateTime.class)
+                );
+    }
+
+    @Test
+    void getUserBookings_stateRejected_shouldCallFindRejected() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStatusOrderByStartTimeBookingDesc(1L, Status.REJECTED))
+                .thenReturn(List.of());
+
+        bookingService.getUserBookings(1L, BookingState.REJECTED);
+
+        verify(bookingRepository).findByBookerIdAndStatusOrderByStartTimeBookingDesc(1L, Status.REJECTED);
+    }
+
+    @Test
+    void getOwnerBookings_stateCurrent_shouldCallOwnerCurrentWithNow() {
+        when(userRepository.existsById(2L)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStartTimeBookingLessThanEqualAndEndTimeBookingGreaterThanEqualOrderByStartTimeBookingDesc(
+                eq(2L), any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(List.of());
+
+        bookingService.getOwnerBookings(2L, BookingState.CURRENT);
+
+        verify(bookingRepository)
+                .findByItemOwnerIdAndStartTimeBookingLessThanEqualAndEndTimeBookingGreaterThanEqualOrderByStartTimeBookingDesc(
+                        eq(2L), any(LocalDateTime.class), any(LocalDateTime.class)
+                );
+    }
+
+    @Test
+    void getOwnerBookings_statePast_shouldCallOwnerPastWithNow() {
+        when(userRepository.existsById(2L)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndEndTimeBookingLessThanOrderByStartTimeBookingDesc(
+                eq(2L), any(LocalDateTime.class)
+        )).thenReturn(List.of());
+
+        bookingService.getOwnerBookings(2L, BookingState.PAST);
+
+        verify(bookingRepository)
+                .findByItemOwnerIdAndEndTimeBookingLessThanOrderByStartTimeBookingDesc(
+                        eq(2L), any(LocalDateTime.class)
+                );
+    }
+
+    @Test
+    void getOwnerBookings_stateFuture_shouldCallOwnerFutureWithNow() {
+        when(userRepository.existsById(2L)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStartTimeBookingGreaterThanOrderByStartTimeBookingDesc(
+                eq(2L), any(LocalDateTime.class)
+        )).thenReturn(List.of());
+
+        bookingService.getOwnerBookings(2L, BookingState.FUTURE);
+
+        verify(bookingRepository)
+                .findByItemOwnerIdAndStartTimeBookingGreaterThanOrderByStartTimeBookingDesc(
+                        eq(2L), any(LocalDateTime.class)
+                );
+    }
+
+    @Test
+    void getOwnerBookings_stateWaiting_shouldCallOwnerWaiting() {
+        when(userRepository.existsById(2L)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStatusOrderByStartTimeBookingDesc(2L, Status.WAITING))
+                .thenReturn(List.of());
+
+        bookingService.getOwnerBookings(2L, BookingState.WAITING);
+
+        verify(bookingRepository).findByItemOwnerIdAndStatusOrderByStartTimeBookingDesc(2L, Status.WAITING);
+    }
+
 }
