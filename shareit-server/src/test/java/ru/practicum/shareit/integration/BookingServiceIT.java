@@ -14,8 +14,8 @@ import ru.practicum.shareit.booking.dto.Status;
 import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -29,10 +29,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 class BookingServiceIT {
 
-    @Autowired private BookingService bookingService;
-    @Autowired private BookingRepository bookingRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private ItemRepository itemRepository;
+    @Autowired
+    private BookingService bookingService;
+    @Autowired
+    private BookingRepository bookingRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private ItemRepository itemRepository;
 
     private User owner;
     private User booker;

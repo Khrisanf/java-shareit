@@ -2,8 +2,8 @@ package ru.practicum.shareit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.test.context.ContextConfiguration;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
@@ -15,7 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = TestBootConfig.class)
 class BookingDtoJsonTest {
 
-    @Autowired ObjectMapper objectMapper;
+    @Autowired
+    ObjectMapper objectMapper;
 
     @Test
     void shouldSerializeAndDeserializeBookingRequestDto() throws Exception {

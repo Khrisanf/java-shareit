@@ -14,11 +14,11 @@ import ru.practicum.shareit.ShareItServerApp;
 import ru.practicum.shareit.exceptions.ConflictException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.handler.ErrorHandler;
-import ru.practicum.shareit.user.UserController;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserController;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
@@ -35,11 +35,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(ErrorHandler.class)
 class UserControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ObjectMapper objectMapper;
 
-    @MockBean UserService userService;
-    @MockBean UserMapper userMapper;
+    @MockBean
+    UserService userService;
+    @MockBean
+    UserMapper userMapper;
 
     @Test
     @DisplayName("POST /users -> 201, Location, body")
